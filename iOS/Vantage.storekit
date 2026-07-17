@@ -1,0 +1,53 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "VANTAGE_STOREKIT_CONFIG",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "23100001",
+      "localizations" : [],
+      "name" : "Vantage Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "5.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "vantage_pro_monthly_id",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "AI proportion critique, session history, and the ghost-limb correction overlay.",
+              "displayName" : "Vantage Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.shimondeitel.vantage.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Vantage Pro Monthly",
+          "subscriptionGroupID" : "23100001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

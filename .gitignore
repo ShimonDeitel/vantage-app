@@ -1,0 +1,25 @@
+# Xcode / build artifacts
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcodegen-generated project (regenerate from project.yml)
+*.xcodeproj/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (not used, but ignore if ever introduced)
+Pods/
+
+# macOS
+.DS_Store
