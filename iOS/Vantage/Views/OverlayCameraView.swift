@@ -12,14 +12,20 @@ struct OverlayCameraView: View {
     @EnvironmentObject var appModel: AppModel
 
     @State private var authDenied = false
+    @State private var cameraUnavailable = false
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            if camera.isConfigured {
-                CameraPreview(session: camera.session)
-                    .ignoresSafeArea()
+            if camera.isConfigured || cameraUnavailable {
+                if camera.isConfigured {
+                    CameraPreview(session: camera.session)
+                        .ignoresSafeArea()
+                } else {
+                    SampleSceneView()
+                        .ignoresSafeArea()
+                }
                 GridPlumbOverlay(
                     divisions: appModel.gridDivisions,
                     showGrid: appModel.showGrid,
@@ -35,12 +41,15 @@ struct OverlayCameraView: View {
 
             VStack {
                 steadyBadge
+                if cameraUnavailable {
+                    sampleChip
+                }
                 Spacer()
                 controlBar
             }
             .padding()
         }
-        .statusBarHidden(camera.isConfigured)
+        .statusBarHidden(camera.isConfigured || cameraUnavailable)
         .task { await setUp() }
         .onDisappear {
             camera.stop()
@@ -101,6 +110,18 @@ struct OverlayCameraView: View {
         .overlay(Rectangle().strokeBorder(VantageColor.overlayHairline, lineWidth: 1))
     }
 
+    private var sampleChip: some View {
+        Text("SAMPLE SCENE — NO CAMERA ON THIS DEVICE")
+            .font(VantageFont.tick(10))
+            .tracking(1.2)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(VantageColor.overlayPanel)
+            .overlay(Rectangle().strokeBorder(VantageColor.overlayHairline, lineWidth: 1))
+            .padding(.top, 6)
+    }
+
     private var permissionMessage: some View {
         VStack(spacing: 14) {
             Image(systemName: "camera.metering.unknown")
@@ -133,8 +154,74 @@ struct OverlayCameraView: View {
             camera.start()
             motion.start()
         } catch {
-            authDenied = true
+            // Permission is granted but no usable camera exists (e.g. Simulator,
+            // or hardware failure). Fall back to a drawn sample scene so the
+            // grid/plumb overlay still demonstrates itself instead of a dead end.
+            cameraUnavailable = true
+            motion.start()
         }
+    }
+}
+
+/// A drawn stand-in for the camera feed when no camera is available: a sheet of
+/// warm paper with a loose gesture-sketch of a figure, so the proportion grid and
+/// plumb line have something real to measure against.
+private struct SampleSceneView: View {
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                Color(red: 0.93, green: 0.90, blue: 0.84)
+                FigureSketchPath()
+                    .stroke(VantageColor.graphite.opacity(0.82), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                    .frame(width: geo.size.width * 0.62, height: geo.size.height * 0.58)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.52)
+            }
+        }
+    }
+}
+
+/// A loose one-line-quality gesture sketch of a standing figure (head, spine,
+/// shoulder and hip lines, limbs) in normalized coordinates.
+private struct FigureSketchPath: Shape {
+    func path(in rect: CGRect) -> Path {
+        func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: rect.minX + rect.width * x, y: rect.minY + rect.height * y)
+        }
+        var p = Path()
+        // Head
+        let headCenter = pt(0.52, 0.08)
+        let headRadius = rect.height * 0.06
+        p.addEllipse(in: CGRect(x: headCenter.x - headRadius, y: headCenter.y - headRadius,
+                                width: headRadius * 2, height: headRadius * 2))
+        // Spine (slight S-curve)
+        p.move(to: pt(0.52, 0.14))
+        p.addQuadCurve(to: pt(0.50, 0.42), control: pt(0.56, 0.28))
+        // Shoulder line
+        p.move(to: pt(0.34, 0.20))
+        p.addQuadCurve(to: pt(0.70, 0.19), control: pt(0.52, 0.16))
+        // Left arm (viewer's left, hangs)
+        p.move(to: pt(0.34, 0.20))
+        p.addQuadCurve(to: pt(0.28, 0.44), control: pt(0.29, 0.32))
+        // Right arm (bent to hip)
+        p.move(to: pt(0.70, 0.19))
+        p.addQuadCurve(to: pt(0.62, 0.40), control: pt(0.76, 0.31))
+        // Hip line
+        p.move(to: pt(0.40, 0.44))
+        p.addQuadCurve(to: pt(0.62, 0.44), control: pt(0.51, 0.41))
+        // Left leg
+        p.move(to: pt(0.44, 0.44))
+        p.addQuadCurve(to: pt(0.40, 0.72), control: pt(0.44, 0.58))
+        p.addQuadCurve(to: pt(0.38, 0.97), control: pt(0.38, 0.85))
+        // Right leg (weight-bearing, straighter)
+        p.move(to: pt(0.58, 0.44))
+        p.addQuadCurve(to: pt(0.60, 0.71), control: pt(0.60, 0.57))
+        p.addQuadCurve(to: pt(0.63, 0.97), control: pt(0.61, 0.85))
+        // Feet
+        p.move(to: pt(0.38, 0.97))
+        p.addLine(to: pt(0.31, 0.98))
+        p.move(to: pt(0.63, 0.97))
+        p.addLine(to: pt(0.70, 0.98))
+        return p
     }
 }
 
