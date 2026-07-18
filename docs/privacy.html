@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Vantage</title>
+<style>
+  :root {
+    --paper: #f3f0e7;
+    --panel: #eae6d9;
+    --ink: #232426;
+    --ink-mute: #63645f;
+    --hairline: #c9c4b3;
+    --red: #e8362b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#17181a; --panel:#212327; --ink:#ecece4; --ink-mute:#9b9c96; --hairline:#33352f; }
+  }
+  :root[data-theme="dark"] { --paper:#17181a; --panel:#212327; --ink:#ecece4; --ink-mute:#9b9c96; --hairline:#33352f; }
+  :root[data-theme="light"] { --paper:#f3f0e7; --panel:#eae6d9; --ink:#232426; --ink-mute:#63645f; --hairline:#c9c4b3; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .sheet {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  .eyebrow {
+    font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .updated { color: var(--ink-mute); font-size: 14px; margin: 0 0 40px; }
+  h2 {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--hairline);
+    padding-top: 20px;
+    margin: 40px 0 12px;
+  }
+  p, li { max-width: 62ch; }
+  a { color: var(--red); }
+  ul { padding-left: 20px; }
+  .back {
+    display: inline-block;
+    margin-bottom: 28px;
+    font-size: 14px;
+    color: var(--ink-mute);
+    text-decoration: none;
+    border-bottom: 1px solid var(--hairline);
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <a class="back" href="index.html">&larr; Vantage</a>
+  <p class="eyebrow">Legal</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated July 17, 2026</p>
+
+  <p>Vantage is a sketch-proportion coaching app. This policy explains, plainly, what
+  the app does with your camera, your photos, and any data it touches.</p>
+
+  <h2>Camera &amp; the live overlay</h2>
+  <p>The free live overlay (proportion grid and plumb line) reads the camera feed and
+  the device's motion sensors entirely on your device, in real time, to draw the grid
+  and crosshair. Nothing from the live overlay is recorded, saved, or sent anywhere.</p>
+
+  <h2>Photos used for AI critique (Pro)</h2>
+  <p>When you use the Pro critique feature, the reference photo and your sketch photo
+  are sent to a stateless AI inference relay operated by the developer (a Cloudflare
+  Worker in front of Cloudflare Workers AI) solely to generate the proportion
+  comparison. That relay does not require an account, does not attach the images to
+  any identity, and does not retain the images after the response is returned. Vantage
+  does not control what any upstream AI infrastructure provider logs at the
+  transport level for abuse prevention, but no persistent copy of your photos is kept
+  by Vantage's own backend.</p>
+
+  <h2>Session history</h2>
+  <p>If you save a critique, the reference photo, your sketch photo, and the feedback
+  are stored locally on your device only, using Apple's on-device SwiftData storage.
+  This history is never uploaded anywhere. Deleting the app, or using "Erase All Data"
+  in Settings, permanently removes it.</p>
+
+  <h2>What Vantage does not do</h2>
+  <ul>
+    <li>No account or sign-in of any kind.</li>
+    <li>No advertising and no ad SDKs.</li>
+    <li>No third-party analytics or behavioral tracking.</li>
+    <li>No sale or sharing of your photos or data with any third party for their own
+      purposes.</li>
+  </ul>
+
+  <h2>Subscriptions &amp; payment</h2>
+  <p>Vantage Pro is an auto-renewable subscription billed through your Apple ID.
+  Payment, billing, and cancellation are handled entirely by Apple under its own App
+  Store terms and privacy practices — Vantage never receives your payment details.</p>
+
+  <h2>Children</h2>
+  <p>Vantage is not directed at children under 13 and does not knowingly collect
+  personal information from them.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, the "Last updated" date above will change and the new
+  policy will be posted at this same address.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:support@shimondeitel.com">support@shimondeitel.com</a></p>
+</div>
+</body>
+</html>

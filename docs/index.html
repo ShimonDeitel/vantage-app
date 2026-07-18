@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vantage — Sketch Proportion Coach</title>
+<meta name="description" content="A live camera grid and plumb line for sketching from life, plus an AI critique that shows exactly where your proportions are off.">
+<style>
+  :root {
+    --paper: #f3f0e7;
+    --panel: #eae6d9;
+    --panel-2: #e2ddcb;
+    --ink: #232426;
+    --ink-mute: #63645f;
+    --hairline: #c9c4b3;
+    --graphite: #2b2c2e;
+    --red: #e8362b;
+    --red-dim: rgba(232,54,43,0.35);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #17181a; --panel:#212327; --panel-2:#26282c;
+      --ink:#ecece4; --ink-mute:#9b9c96; --hairline:#33352f; --graphite:#d8d6ce;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17181a; --panel:#212327; --panel-2:#26282c;
+    --ink:#ecece4; --ink-mute:#9b9c96; --hairline:#33352f; --graphite:#d8d6ce;
+  }
+  :root[data-theme="light"] {
+    --paper: #f3f0e7; --panel:#eae6d9; --panel-2:#e2ddcb;
+    --ink:#232426; --ink-mute:#63645f; --hairline:#c9c4b3; --graphite:#2b2c2e;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Menlo", "Cascadia Code", monospace;
+  }
+  .eyebrow {
+    font: 600 12px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- header ---- */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  header .wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .wordmark {
+    font: 700 15px/1 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .wordmark span { color: var(--red); }
+  nav { display: flex; gap: 22px; }
+  nav a {
+    font-size: 13px; text-decoration: none; color: var(--ink-mute);
+    letter-spacing: 0.02em;
+  }
+  nav a:hover, nav a:focus-visible { color: var(--ink); }
+
+  /* ---- hero ---- */
+  .hero {
+    padding: 64px 0 40px;
+  }
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 860px) {
+    .hero .wrap { grid-template-columns: 1fr; }
+  }
+  h1 {
+    font: 800 clamp(34px, 5.6vw, 58px)/1.03 ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin: 14px 0 18px;
+    text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--red); }
+  .hero p.lede {
+    font-size: 17px; line-height: 1.65; color: var(--ink-mute);
+    max-width: 46ch; margin: 0 0 26px;
+  }
+  .hero-meta {
+    display: flex; gap: 22px; flex-wrap: wrap;
+    font-size: 13px; color: var(--ink-mute);
+  }
+  .hero-meta b { color: var(--ink); font-weight: 600; }
+  .hero-meta .dot { color: var(--red); }
+
+  .viewfinder {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #101112;
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+  }
+  .viewfinder canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .vf-badge {
+    position: absolute; left: 12px; top: 12px;
+    font: 600 10px/1 ui-monospace, monospace;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #fff; background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 9px;
+  }
+  .vf-badge b { color: #fff; }
+  .vf-caption {
+    position: absolute; left: 12px; bottom: 12px; right: 12px;
+    font-size: 11px; color: rgba(255,255,255,0.7);
+    font-family: ui-monospace, monospace;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- section shell ---- */
+  section { padding: 58px 0; border-top: 1px solid var(--hairline); }
+  .section-head { max-width: 56ch; margin-bottom: 34px; }
+  .section-head h2 {
+    font: 700 26px/1.15 -apple-system, sans-serif;
+    letter-spacing: -0.01em; margin: 10px 0 10px;
+    text-wrap: balance;
+  }
+  .section-head p { color: var(--ink-mute); margin: 0; font-size: 15.5px; }
+
+  /* ---- how it works: spec rows ---- */
+  .spec-rows { border-top: 1px solid var(--hairline); }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 24px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  @media (max-width: 640px) {
+    .spec-row { grid-template-columns: 56px 1fr; }
+  }
+  .spec-row .num {
+    font: 700 13px/1.3 ui-monospace, monospace;
+    color: var(--red);
+    letter-spacing: 0.04em;
+  }
+  .spec-row .num small { display: block; color: var(--ink-mute); font-weight: 600; margin-top: 4px; }
+  .spec-row h3 { margin: 0 0 6px; font-size: 17px; }
+  .spec-row p { margin: 0; color: var(--ink-mute); max-width: 58ch; font-size: 15px; }
+  .tag {
+    display: inline-block; font: 600 10px/1 ui-monospace, monospace;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 7px; border: 1px solid var(--hairline);
+    color: var(--ink-mute); margin-left: 8px; vertical-align: 2px;
+  }
+  .tag.pro { color: var(--red); border-color: var(--red-dim); }
+
+  /* ---- ghost-limb demo ---- */
+  .ghost-demo {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;
+  }
+  @media (max-width: 780px) { .ghost-demo { grid-template-columns: 1fr; } }
+  .ghost-figure {
+    border: 1px solid var(--hairline);
+    background: var(--panel);
+    padding: 20px;
+    aspect-ratio: 4 / 5;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ghost-figure svg { width: 100%; height: 100%; }
+  .figure-line { stroke: var(--ink-mute); stroke-width: 2.2; fill: none; }
+  .correction-line {
+    stroke: var(--red);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: square;
+  }
+  .correction-tick { stroke: var(--red); stroke-width: 3; }
+  .correction-label {
+    font: 600 11px ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    fill: var(--red);
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .correction-line, .correction-tick {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      transition: stroke-dashoffset 1s cubic-bezier(.3,.7,.2,1);
+    }
+    .correction-label {
+      transition: opacity .5s ease .9s, transform .5s ease .9s;
+    }
+    .ghost-figure.in-view .correction-line,
+    .ghost-figure.in-view .correction-tick {
+      stroke-dashoffset: 0;
+    }
+    .ghost-figure.in-view .correction-label {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .quirk-copy p { color: var(--ink-mute); font-size: 15.5px; max-width: 46ch; }
+  .quirk-copy .eyebrow { display: block; margin-bottom: 10px; }
+
+  /* ---- pricing spec table ---- */
+  .spec-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .spec-table th, .spec-table td {
+    text-align: left; padding: 13px 10px; border-bottom: 1px solid var(--hairline);
+    font-size: 14.5px; vertical-align: top;
+  }
+  .spec-table thead th {
+    font: 700 11px ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-mute); border-bottom: 1px solid var(--ink-mute);
+  }
+  .spec-table td:first-child, .spec-table th:first-child { color: var(--ink-mute); width: 46%; }
+  .spec-table .yes { color: var(--ink); }
+  .spec-table .pro-col { color: var(--red); font-weight: 600; }
+  .price-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--hairline);
+  }
+  .price-row .big { font: 700 30px/1 ui-monospace, monospace; }
+  .price-row .big span { font-size: 15px; color: var(--ink-mute); font-weight: 500; }
+  .price-note { font-size: 13px; color: var(--ink-mute); margin-top: 6px; }
+  .table-wrap { overflow-x: auto; }
+
+  /* ---- footer ---- */
+  footer { padding: 40px 0 60px; }
+  footer .wrap {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  }
+  footer .links { display: flex; gap: 18px; font-size: 13px; }
+  footer .links a { color: var(--ink-mute); text-decoration: none; border-bottom: 1px solid transparent; }
+  footer .links a:hover { color: var(--ink); border-color: var(--hairline); }
+  footer .fine { font-size: 12px; color: var(--ink-mute); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="wordmark">VANTAGE<span>.</span></div>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#ghost">Ghost-limb</a>
+      <a href="#pricing">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Art &amp; Drawing — Live Overlay + AI Critique</p>
+      <h1>Sketch<br>Proportion<br><em>Coach</em></h1>
+      <p class="lede">A live camera grid and plumb line for sketching from life on real
+      paper — plus an AI critique that photographs your finished sketch next to the
+      reference and tells you exactly which proportions are off, and by how much.</p>
+      <div class="hero-meta">
+        <span><b>Free</b> — live grid + plumb overlay</span>
+        <span class="dot">&#9679;</span>
+        <span><b>Pro $5.99/mo</b> — AI critique, history, ghost-limb overlay</span>
+      </div>
+    </div>
+    <div class="viewfinder" id="viewfinder">
+      <canvas id="hero-canvas"></canvas>
+      <div class="vf-badge"><b>&#9679;</b> LIVE OVERLAY DEMO</div>
+      <div class="vf-caption mono">plumb line springs level as the phone steadies</div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">How It Works</p>
+      <h2>Three steps, in the order you actually draw.</h2>
+      <p>Sight your subject, capture both photos when you're done, then see precisely
+      where the proportions drifted.</p>
+    </div>
+    <div class="spec-rows">
+      <div class="spec-row">
+        <div class="num">01<small>SIGHT</small></div>
+        <div>
+          <h3>Live grid &amp; plumb line <span class="tag">Free</span></h3>
+          <p>Point the camera at your subject or reference. A proportion grid (2&times;2
+          to 6&times;6) and a plumb crosshair read the phone's own gyroscope and stay
+          world-vertical as you move — the same trick as a hand-held plumb bob, done
+          electronically. Hold still and the lines spring into a locked, brightened
+          state.</p>
+        </div>
+      </div>
+      <div class="spec-row">
+        <div class="num">02<small>CAPTURE</small></div>
+        <div>
+          <h3>Photograph reference &amp; sketch <span class="tag pro">Pro</span></h3>
+          <p>When you're finished (or partway through), photograph your reference and
+          your paper sketch. Vantage sends each photo to a vision model separately and
+          asks for a structured set of proportion ratios — head, shoulders, hips, arms,
+          legs, torso, hands.</p>
+        </div>
+      </div>
+      <div class="spec-row">
+        <div class="num">03<small>CRITIQUE</small></div>
+        <div>
+          <h3>Real percentages, not a guess <span class="tag pro">Pro</span></h3>
+          <p>Vantage computes the actual difference between the two ratio sets itself
+          — "the arm length reads about 20% shorter than the reference" — instead of
+          asking the model to eyeball the arithmetic in prose.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ghost">
+  <div class="wrap">
+    <div class="ghost-demo">
+      <div class="ghost-figure" id="ghost-figure">
+        <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg">
+          <ellipse class="figure-line" cx="110" cy="34" rx="20" ry="24"/>
+          <line class="figure-line" x1="110" y1="58" x2="110" y2="160"/>
+          <line class="figure-line" x1="66" y1="82" x2="154" y2="82"/>
+          <line class="figure-line" x1="66" y1="82" x2="46" y2="150"/>
+          <line class="figure-line" x1="154" y1="82" x2="174" y2="150"/>
+          <line class="figure-line" x1="78" y1="150" x2="142" y2="150"/>
+          <line class="figure-line" x1="78" y1="150" x2="64" y2="238"/>
+          <line class="figure-line" x1="142" y1="150" x2="156" y2="238"/>
+
+          <line class="correction-line" x1="46" y1="112" x2="174" y2="112" pathLength="240"/>
+          <line class="correction-tick" x1="46" y1="104" x2="46" y2="120" pathLength="240"/>
+          <line class="correction-tick" x1="174" y1="104" x2="174" y2="120" pathLength="240"/>
+          <text class="correction-label" x="110" y="100" text-anchor="middle">+18% ARM LENGTH</text>
+        </svg>
+      </div>
+      <div class="quirk-copy">
+        <span class="eyebrow">The Quirky Feature</span>
+        <h2>The ghost-limb correction overlay.</h2>
+        <p>Instead of only describing the fix in a sentence, Vantage redraws the
+        reference's correct proportions as a faint red-pencil bracket directly on top
+        of a photo of your own sketch — right where the fix belongs. In the app, each
+        mark draws itself stroke-by-stroke, like a teacher's red pencil, right after
+        your critique comes back.</p>
+        <p>Scroll this into view once more to watch the demo line redraw itself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Free vs. Pro</p>
+      <h2>The overlay is free. The critique is Pro.</h2>
+      <p>No trial trap — just a monthly subscription for the AI features, cancel any
+      time from your Apple ID settings.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr><th>Feature</th><th>Free</th><th>Pro</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Live proportion grid</td><td class="yes">&#10003;</td><td class="yes">&#10003;</td></tr>
+          <tr><td>Motion-steadied plumb line</td><td class="yes">&#10003;</td><td class="yes">&#10003;</td></tr>
+          <tr><td>AI proportion critique</td><td>&mdash;</td><td class="pro-col">&#10003;</td></tr>
+          <tr><td>Session history</td><td>&mdash;</td><td class="pro-col">&#10003;</td></tr>
+          <tr><td>Ghost-limb correction overlay</td><td>&mdash;</td><td class="pro-col">&#10003;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="price-row">
+      <div class="big">$5.99<span> /month, Vantage Pro</span></div>
+      <div class="price-note mono">Coming to the App Store</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="wordmark">VANTAGE<span>.</span></div>
+    <div class="links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:support@shimondeitel.com">Contact</a>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:14px;">
+    <p class="fine">&copy; 2026 Vantage. Sketch Proportion Coach.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var canvas = document.getElementById('hero-canvas');
+  var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function size() {
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+  }
+  size();
+  window.addEventListener('resize', size);
+
+  var current = 0, target = 0, velocity = 0, lastTargetAt = 0, locked = false, flash = 0;
+
+  function pickTarget(t) {
+    target = (Math.random() * 20 - 10) * Math.PI / 180;
+    lastTargetAt = t;
+  }
+
+  function drawGrid(w, h, rot, color, lineWidth) {
+    var cx = w / 2, cy = h / 2;
+    var diag = Math.sqrt(w * w + h * h);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rot);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    var divisions = 3;
+    for (var i = 1; i < divisions; i++) {
+      var fx = -diag / 2 + (diag * i) / divisions;
+      ctx.beginPath(); ctx.moveTo(fx, -diag / 2); ctx.lineTo(fx, diag / 2); ctx.stroke();
+      var fy = -diag / 2 + (diag * i) / divisions;
+      ctx.beginPath(); ctx.moveTo(-diag / 2, fy); ctx.lineTo(diag / 2, fy); ctx.stroke();
+    }
+    ctx.lineWidth = lineWidth * 1.4;
+    ctx.beginPath(); ctx.moveTo(0, -diag / 2); ctx.lineTo(0, diag / 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-diag / 2, 0); ctx.lineTo(diag / 2, 0); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCornerTicks(w, h) {
+    var m = 22, len = 18;
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.6 * dpr;
+    var corners = [[m, m, 1, 1], [w - m, m, -1, 1], [w - m, h - m, -1, -1], [m, h - m, 1, -1]];
+    corners.forEach(function (c) {
+      ctx.beginPath();
+      ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + c[2] * len, c[1]);
+      ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0], c[1] + c[3] * len);
+      ctx.stroke();
+    });
+  }
+
+  function frame(t) {
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    if (!lastTargetAt || t - lastTargetAt > 2600) pickTarget(t);
+
+    var stiffness = 0.006, damping = 0.088;
+    var accel = (target - current) * stiffness - velocity * damping;
+    velocity += accel;
+    current += velocity;
+
+    var wasLocked = locked;
+    locked = Math.abs(velocity) < 0.00035 && (t - lastTargetAt) > 500;
+    if (locked && !wasLocked) flash = 1;
+    flash = Math.max(0, flash - 0.02);
+
+    var lineColor = locked ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)';
+    drawGrid(w, h, current, lineColor, (1.2 + flash * 1.2) * dpr);
+    drawCornerTicks(w, h);
+
+    if (!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  if (reduceMotion) {
+    locked = true;
+    drawGrid(canvas.width, canvas.height, 0, 'rgba(255,255,255,0.95)', 1.6 * dpr);
+    drawCornerTicks(canvas.width, canvas.height);
+  } else {
+    requestAnimationFrame(frame);
+  }
+
+  var ghost = document.getElementById('ghost-figure');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          ghost.classList.add('in-view');
+        } else {
+          ghost.classList.remove('in-view');
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(ghost);
+  } else {
+    ghost.classList.add('in-view');
+  }
+})();
+</script>
+</body>
+</html>
